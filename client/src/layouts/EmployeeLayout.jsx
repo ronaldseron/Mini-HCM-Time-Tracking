@@ -2,7 +2,7 @@ import Header from "../components/employee/Header";
 import { useAuth } from "../contexts/AuthContext";
 import { logout } from "../services/authService";
 
-const EmployeeLayout = ({children}) => {
+const EmployeeLayout = ({ children }) => {
   const { userData } = useAuth();
   
   return (
