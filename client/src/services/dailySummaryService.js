@@ -24,3 +24,27 @@ export const createDailySummary = async (token) => {
     };
   }
 };
+
+export const getHistoryPunches = async (token) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/users/history`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      return { success: false, error: response.error };
+    }
+    const { data } = await response.json();
+
+    console.log(data);
+    return { success: true, data };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+};
