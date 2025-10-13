@@ -1,8 +1,8 @@
-import Header from "../components/employee/Header";
+import Header from "../components/admin/Header";
 import { useAuth } from "../contexts/AuthContext";
 import { logout } from "../services/authService";
 
-const AdminLayout = () => {
+const AdminLayout = ({ children }) => {
   const { userData } = useAuth();
 
   return (
