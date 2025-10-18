@@ -1,16 +1,14 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-import { 
-  onAuthStateChanged, 
-} from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
-import { auth, db } from '../services/firebase';
+import { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "../services/firebase";
+import { me } from "../services/authService";
 
-const AuthContext = createContext({});
+const AuthContext = createContext(null);
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within AuthProvider');
+    throw new Error("useAuth must be used within AuthProvider");
   }
   return context;
 };
@@ -21,27 +19,20 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setLoading(true);
-      
-      if (firebaseUser) {
+
+      if (currentUser) {
+        const token = await getUserToken();
         try {
-          // Fetch user data from Firestore
-          const userDocRef = doc(db, 'users', firebaseUser.uid);
-          const userDoc = await getDoc(userDocRef);
-          
-          if (userDoc.exists()) {
-            const data = userDoc.data();
-            setUser(firebaseUser);
-            setUserData({
-              uid: firebaseUser.uid,
-              email: firebaseUser.email,
-              ...data
-            });
-        } else {
-            setUser(null);
-            setUserData(null);
-        }
+            const userDoc = await me(token);
+            if (userDoc) {
+              setUser(currentUser);
+              setUserData(userDoc.data)
+            } else {
+              setUser(null);
+              setUserData(null);
+            }
         } catch (error) {
           setUser(null);
           setUserData(null);
@@ -54,30 +45,35 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
     });
 
-    return unsubscribe;
+    return () => unsubscribe();
   }, []);
 
-  const getUserToken = async () => {
-    const { currentUser } = auth;
-    if (currentUser) {
-      return await currentUser.getIdToken();
+  const getUserToken = useCallback(async () => {
+    if (auth.currentUser) {
+      return await auth.currentUser.getIdToken();
     }
     return null;
-  }
+  }, []);
+
+  const withToken = useCallback(async (service) => {
+    const token = await getUserToken();
+    return service(token);
+  }, [getUserToken]);
 
   const value = {
     user,
     userData,
     loading,
     isAuthenticated: !!user,
-    isAdmin: userData?.role === 'admin',
-    isEmployee: userData?.role === 'employee',
-    getUserToken
+    isAdmin: userData?.role === "admin",
+    isEmployee: userData?.role === "employee",
+    getUserToken,
+    withToken
   };
 
   return (
     <AuthContext.Provider value={value}>
-      {children}
+      {!loading && children}
     </AuthContext.Provider>
   );
 };
