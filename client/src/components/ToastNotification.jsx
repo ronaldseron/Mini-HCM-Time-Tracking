@@ -12,13 +12,10 @@ const Toast = ({ show, type = "success", message }) => {
 
   const toastContent = (
     <div
-      className={`fixed top-35 right-5 z-[10000] transform transition-all duration-500 ${
-        show ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
-      }`}
+      className={`fixed top-32 right-5 z-[10000] transform transition-all duration-500 ease-in-out
+        ${show ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"}`}
     >
-      <div
-        className={`px-5 py-3 rounded-md shadow-lg text-white font-medium ${bgColor}`}
-      >
+      <div className={`px-5 py-3 rounded-md shadow-lg text-white font-medium ${bgColor}`}>
         {message}
       </div>
     </div>
