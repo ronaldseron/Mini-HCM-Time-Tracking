@@ -12,3 +12,5 @@ dist/
 .env.test.local
 .env.production.local
 
+# server secrets
+secrets/
